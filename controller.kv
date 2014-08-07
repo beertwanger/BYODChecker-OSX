@@ -1,0 +1,63 @@
+#:kivy 1.0
+
+<Controller>:
+    label_wid: start_label
+    button_wid: start
+    wifi_wid: wifi_UP
+    ping_wid: ping_gateway
+    dns_wid: dns
+    http_wid: http
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 20
+
+        Label:
+            id: title
+            text: 'Barclays BYOD Checker'
+            font_size: 50
+            color: 0,0.68,0.94,1
+
+        BoxLayout:
+            orientation: 'horizontal'
+
+            ToggleButton:
+                id: start
+                text: 'Start'
+                font_size: 50
+                color: 1,1,1,1
+                background_color: 0.59,0.59,0.59,1
+                on_press: root.do_action()
+            Label:
+                id: start_label
+                text: 'Press Start to check BYOD'
+                font_size: 24
+                color: 1,1,1,1
+
+        BoxLayout:
+            orientation: 'horizontal'
+            Button:
+                id: wifi_UP
+                font_size: 24
+                color: 1,1,1,1
+                background_color: 0.59,0.59,0.59,1
+                text: 'Wifi'
+            Button:
+                id: ping_gateway
+                font_size: 24
+                color: 1,1,1,1
+                background_color: 0.59,0.59,0.59,1
+                text: 'Gateway'
+            Button:
+                id: dns
+                font_size: 24
+                color: 1,1,1,1
+                background_color: 0.59,0.59,0.59,1
+                text: 'DNS'
+            Button:
+                id: http
+                font_size: 24
+                color: 1,1,1,1
+                background_color: 0.59,0.59,0.59,1
+                text: 'Web'
+

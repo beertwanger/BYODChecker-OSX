@@ -1,0 +1,22 @@
+ip route
+
+default via 172.28.95.253 dev wlan0
+default via 172.28.95.253 dev wlan0 metric 308
+
+netcfg
+
+lo     UP             127.0.0.1/8   0x00000000 00:00:00:00:00:00
+dummy0 DOWN             0.0.0.0/0   0x00000000 00:00:00:00:00:00
+wlan0  UP        172.28.95.223/19   0x00001236 d4:17:91:9c:20:be
+
+
+cat /proc/net/wireless
+
+Inter-| sta-|   Quality        |  Discarded packets               | Missed | WE
+ face | tus | link level noise | nwld  crypt   frag  retry   misc | beacon | 22
+ wlan0: 0000   50.  -60   -256       0      0      0      0      0        0
+
+getprop net.dns1
+141.228.16.34
+
+
