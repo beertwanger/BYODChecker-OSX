@@ -40,28 +40,33 @@ class Controller(FloatLayout):
             return gateway
 
         def ping_gateway(gw):
-            from subprocess import check_output
-            words = (check_output(["python", "pingGateway.py", gw])).split()
-            if (words[2] > 0):
+            ping = IP(dst=gw)/ICMP()
+            reply = sr1(ping, timeout=1)
+            if not (reply is None):
                 return 'Gateway OK'
             else:
                 return 'Gateway not reachable'
 
         def nameserver():
-            dns = 'None'
+            dns = 'Fail'
             from subprocess import check_output
             words = (check_output(["cat", "/etc/resolv.conf"])).split()
             for index in range(len(words)):
                 if (words[index] == 'nameserver'):
                     dns  = words[index+1]
+                    query = IP(dst=dns)/UDP()/DNS(rd=1,qd=DNSQR(qname="www.bbc.co.uk"))
+                    reply = sr1(query, timeout=1)
+                    if (DNS in reply) and (reply.rcode==0L):
+                        dns = 'DNS OK'
             return dns
+
 
         def httpGet():
             syn = IP(dst='www.bbc.co.uk')/TCP(dport=80, flags='S')
             syn_ack= sr1(syn,timeout=1)
             getStr = 'GET / HTTP/1.1\r\nHost: www.bbc.co.uk\r\n\r\n'
             request = IP(dst='www.bbc.co.uk')/TCP(dport=80,sport=syn_ack[TCP].dport,seq=syn_ack[TCP].ack,ack=syn_ack[TCP].seq+1,flags='A')/getStr
-            reply = sr1(request)
+            reply = sr1(request,timeout=1)
             
             if (TCP in reply and reply[TCP].seq==syn_ack[TCP].seq+1):
                 return 'http OK.'
@@ -71,11 +76,17 @@ class Controller(FloatLayout):
         if (self.button_wid.state == 'down'):
             self.label_wid.text = 'Starting test...'
             self.button_wid.background_color = 3,0,0,1
+            #
+            # Check wifi signal
+            #
             wifi = wifi_UP()
             if (wifi=='UP'):
                 self.wifi_wid.background_color = 0,2,0,1
             else:
                 self.wifi_wid.background_color = 2,0,0,1
+            #
+            # Ping default gateway
+            #
             ping = 'Failed'
             if (wifi=='UP'):
                 gateway = default_gateway()
@@ -87,17 +98,20 @@ class Controller(FloatLayout):
                     self.ping_wid.background_color = 0,2,0,1
                 else:
                     self.ping_wid.background_color = 2,0,0,1
-            dns = 'Failed'
+            #
+            # Query DNS
+            #
+            ns = 'Fail'
             if (ping == 'Gateway OK'):
                 ns = nameserver()
-                query = IP(dst=ns)/UDP()/DNS(rd=1,qd=DNSQR(qname="www.bbc.co.uk"))
-                reply = sr1(query, timeout=1)
-                if (DNS in reply) and (reply.rcode==0L):
-                    dns = 'DNS OK'
+                if (ns == 'DNS OK'):
                     self.dns_wid.background_color = 0,2,0,1
                 else:
                     self.dns_wid.background_color = 2,0,0,1
-            if (dns == 'DNS OK'):
+            #
+            # Send HTTP GET
+            #
+            if (ns == 'DNS OK'):
                 http = httpGet()
                 if (http == 'http OK.'):
                     self.http_wid.background_color = 0,2,0,1
