@@ -54,7 +54,7 @@ class Controller(FloatLayout):
             for index in range(len(words)):
                 if (words[index] == 'nameserver'):
                     dns  = words[index+1]
-                    query = IP(dst=dns)/UDP()/DNS(rd=1,qd=DNSQR(qname="www.bbc.co.uk"))
+                    query = IP(dst=dns)/UDP(sport=64999)/DNS(rd=1,qd=DNSQR(qname="www.bbc.co.uk"))
                     reply = sr1(query, timeout=1)
                     if (DNS in reply) and (reply.rcode==0L):
                         dns = 'DNS OK'
@@ -62,16 +62,16 @@ class Controller(FloatLayout):
 
 
         def httpGet():
-            syn = IP(dst='www.bbc.co.uk')/TCP(dport=80, flags='S')
-            syn_ack= sr1(syn,timeout=1)
-            getStr = 'GET / HTTP/1.1\r\nHost: www.bbc.co.uk\r\n\r\n'
-            request = IP(dst='www.bbc.co.uk')/TCP(dport=80,sport=syn_ack[TCP].dport,seq=syn_ack[TCP].ack,ack=syn_ack[TCP].seq+1,flags='A')/getStr
-            reply = sr1(request,timeout=1)
-            
-            if (TCP in reply and reply[TCP].seq==syn_ack[TCP].seq+1):
+            import urllib2
+            url = 'http://www.bbc.co.uk'
+            try:
+                response = urllib2.urlopen(url)
                 return 'http OK.'
-            else:
+            except urllib2.HTTPError, e:
                 return 'bad response.'
+            except urllib2.URLError, e:
+                return 'bad response.'
+
 
         if (self.button_wid.state == 'down'):
             self.label_wid.text = 'Starting test...'
